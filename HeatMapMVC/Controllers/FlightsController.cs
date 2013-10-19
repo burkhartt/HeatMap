@@ -19,7 +19,7 @@ namespace HeatMapMVC.Controllers {
 					var data = line.Split(',');
 					airports.Add(new Airport {
 						Latitude = Convert.ToDouble(data[6]),
-						Longitude = Convert.ToDouble(data[7])
+						Longitude = Convert.ToDouble(data[7]),
 					});
 				} catch (Exception) { }
 			}
@@ -36,7 +36,7 @@ namespace HeatMapMVC.Controllers {
 					DestinationLat = airport.Latitude,
 					DestinationLong = airport.Longitude,
 					Date = date,
-
+					
 				});
 			}
 

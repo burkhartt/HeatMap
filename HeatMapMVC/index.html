@@ -22,110 +22,10 @@
     </style>
     <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&libraries=visualization"></script>
     
-    <link rel="stylesheet" type="text/css" href="Content/bootstrap/bootstrap.min.css" />
-    <script type="text/javascript" src="Scripts/jquery-2.0.3.min.js"></script>
-	  <script src="Scripts/bootstrap.min.js"></script>
-    <script>
-	    var months = {
-		    1: "January",
-		    2: "February",
-		    3: "March",
-		    4: "April",
-		    5: "May",
-		    6: "June",
-		    7: "July",
-		    8: "August",
-		    9: "September",
-		    10: "October",
-		    11: "November",
-		    12: "December"
-	    };
-
-    	var map, pointarray, heatmap;
-	    var animationEnabled = false;
-			
-	    var mapOptions = {
-		    zoom: 3,
-		    center: new google.maps.LatLng(0, 0),
-		    mapTypeId: google.maps.MapTypeId.ROAD
-	    };
-
-			
-	    function startAnimation() {
-		    animationEnabled = true;
-	    }
-			
-	    function stopAnimation() {
-		    animationEnabled = false;
-	    }
-			
-
-	    function changeGradient() {
-		    var gradient = [
-			    'rgba(0, 255, 255, 0)',
-			    'rgba(0, 255, 255, 1)',
-			    'rgba(0, 191, 255, 1)',
-			    'rgba(0, 127, 255, 1)',
-			    'rgba(0, 63, 255, 1)',
-			    'rgba(0, 0, 255, 1)',
-			    'rgba(0, 0, 223, 1)',
-			    'rgba(0, 0, 191, 1)',
-			    'rgba(0, 0, 159, 1)',
-			    'rgba(0, 0, 127, 1)',
-			    'rgba(63, 0, 91, 1)',
-			    'rgba(127, 0, 63, 1)',
-			    'rgba(191, 0, 31, 1)',
-			    'rgba(255, 0, 0, 1)'
-		    ]
-		    heatmap.setOptions({
-			    gradient: heatmap.get('gradient') ? null : gradient
-		    });
-	    }
-
-	    function initialize() {
-		    map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
-
-		    pointArray = new google.maps.MVCArray([]);
-		    heatmap = new google.maps.visualization.HeatmapLayer({
-			    data: pointArray
-		    });
-		    heatmap.setOptions({ radius: heatmap.get('radius') ? null : map.getZoom() * 4 });
-		    heatmap.setMap(map);
-				
-		    google.maps.event.addListener(map, 'zoom_changed', function () {
-			    var zoomLevel = map.getZoom() * 4;
-			    console.log(zoomLevel);
-			    heatmap.setOptions({ radius: zoomLevel });					
-		    });
-	    }
-
-	    var pointArray = null;
-
-	    function RedrawMap(data) {
-		    heatmap.setData(data);				
-	    }
-
-	    function moveToNextMonth() {
-		    var slider = $("input[name='months']");
-		    var currentMonth = slider.val();
-		    var nextMonth = parseInt(currentMonth) + 1;				
-		    if (nextMonth > parseInt(slider.attr("max"))) {
-			    nextMonth = parseInt(slider.attr("min"));
-		    }
-		    slider.val(nextMonth);
-		    slider.trigger("change");
-		    $("#currentDate").html(months[slider.val()] + " 2011");
-	    }
-
-	    $(function() {
-		    initialize();
-		    setInterval(function () {
-			    if (!animationEnabled) return;
-			    moveToNextMonth();
-		    }, 2000);
-	    });
-
-    </script>
+	    <link rel="stylesheet" type="text/css" href="Content/bootstrap/bootstrap.min.css" />		
+	    <script type="text/javascript" src="Scripts/jquery-2.0.3.min.js"></script>
+	    <script src="Scripts/bootstrap.min.js"></script>	    
+    </meta>
   </head>
 
   <body>
@@ -133,12 +33,16 @@
 	  <div class="row-fluid">
 		  <div class="col-md-4 col-md-offset-8">
 			  <div  id="panel">
+				  <h3 id="currentDate">January 2011</h3>
 				  <button class="btn btn-danger" onclick="stopAnimation()">Stop</button>
 				  <button class="btn btn-success" onclick="startAnimation()">Start</button>
-				  <form action="demo_form.asp" method="get">		    
-					  <input type="range" name="months" min="1" max="12" value="8" />
-				  </form>
-				  <div id="currentDate">August 2011</div>
+				  <input type="range" name="months" min="1" max="12" value="1" />
+				  <div>
+					  <label>Origin</label>
+					  <input type="radio" name="filter" value="o" checked="checked" />
+					  <label>Destination</label>
+					  <input type="radio" name="filter" value="d" />
+					</div>
 			  </div>			  
 			  </div>		  
 	  </div>
@@ -150,24 +54,138 @@
 		 	
 
 	  <script type="text/javascript">
+  		function initialize() {
+  			map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+
+  			pointArray = new google.maps.MVCArray([]);
+  			heatmap = new google.maps.visualization.HeatmapLayer({
+  				data: pointArray
+  			});
+  			heatmap.setOptions({ radius: heatmap.get('radius') ? null : map.getZoom() * 4 });
+  			heatmap.setMap(map);
+
+  			google.maps.event.addListener(map, 'zoom_changed', function () {
+  				var zoomLevel = map.getZoom() * 4;
+  				heatmap.setOptions({ radius: zoomLevel });
+  			});
+  		}
+
   		$(function () {
-  			$("input[name='months']").change(function () {
-  				queryData("2011-" + $(this).val() + "-01");
+  			$("input[name='filter']").change(function() {
+  				queryData();
   			});
 
-  			function queryData(date) {
-  				$.getJSON("/Flights?date=" + date,	  			
-  					function (result) {  						
-  						var dataSet = [];
-	  					
-  						$.each(result, function (index, line) {
-  							for (var i = 0; i < line.NumberOfTravelers/100000; i++) {
-  								dataSet.push(new google.maps.LatLng(line.DestinationLat, line.DestinationLong));
-  							}
-  						});
-  						RedrawMap(dataSet);
-  					});
+  			$("input[name='months']").change(function () {
+  				queryData();
+  				$("#currentDate").html(months[$(this).val()] + " 2011");
+  			});  			
+  		});
+  		
+  		function queryData() {
+  			var date = $("input[name='months']").val();
+  			var filter = $("input[name='filter']:checked").val();
+  			$.getJSON("/index.py?mo_str=" + date + "&origin_or_dest=" + filter,
+				function (result) {
+					var dataSet = [];
+
+					$.each(result, function (index, line) {
+						for (var i = 0; i < line.NumberOfTravelers / 100000; i++) {
+							dataSet.push(new google.maps.LatLng(line.DestinationLat, line.DestinationLong));
+						}
+					});
+					RedrawMap(dataSet);
+				});
+  		}
+  		
+  		var months = {
+  			1: "January",
+  			2: "February",
+  			3: "March",
+  			4: "April",
+  			5: "May",
+  			6: "June",
+  			7: "July",
+  			8: "August",
+  			9: "September",
+  			10: "October",
+  			11: "November",
+  			12: "December"
+  		};
+
+  		var map, pointarray, heatmap;
+  		var animationEnabled = false;
+
+  		var mapOptions = {
+  			zoom: 3,
+  			center: new google.maps.LatLng(0, 0),
+  			mapTypeId: google.maps.MapTypeId.ROAD
+  		};
+
+
+  		function startAnimation() {
+  			animationEnabled = true;
+  		}
+
+  		function stopAnimation() {
+  			animationEnabled = false;
+  		}
+
+
+  		function changeGradient() {
+  			var gradient = [
+  				'rgba(0, 255, 255, 0)',
+  				'rgba(0, 255, 255, 1)',
+  				'rgba(0, 191, 255, 1)',
+  				'rgba(0, 127, 255, 1)',
+  				'rgba(0, 63, 255, 1)',
+  				'rgba(0, 0, 255, 1)',
+  				'rgba(0, 0, 223, 1)',
+  				'rgba(0, 0, 191, 1)',
+  				'rgba(0, 0, 159, 1)',
+  				'rgba(0, 0, 127, 1)',
+  				'rgba(63, 0, 91, 1)',
+  				'rgba(127, 0, 63, 1)',
+  				'rgba(191, 0, 31, 1)',
+  				'rgba(255, 0, 0, 1)'
+  			]
+  			heatmap.setOptions({
+  				gradient: heatmap.get('gradient') ? null : gradient,
+  				dissipate: false,
+  				stylers: [
+  { hue: "#00d4ff" },
+  { saturation: 60 },
+  { lightness: -20 },
+  					
+  { gamma: 1.51 }
+  				]
+  			});
+  			
+  		}  		
+
+  		var pointArray = null;
+
+  		function RedrawMap(data) {  		
+  			heatmap.setData(data);  			
+  		}
+
+  		function moveToNextMonth() {
+  			var slider = $("input[name='months']");
+  			var currentMonth = slider.val();
+  			var nextMonth = parseInt(currentMonth) + 1;
+  			if (nextMonth > parseInt(slider.attr("max"))) {
+  				nextMonth = parseInt(slider.attr("min"));
   			}
+  			slider.val(nextMonth);
+  			slider.trigger("change");  			
+  		}
+
+  		$(function () {
+  			initialize();
+  			setInterval(function () {
+  				if (!animationEnabled) return;
+  				moveToNextMonth();
+  			}, 2000);
+  			queryData("01");
   		});
   	</script>
 
