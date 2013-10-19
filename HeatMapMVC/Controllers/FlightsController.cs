@@ -26,21 +26,21 @@ namespace HeatMapMVC.Controllers {
 			return airports;
 		}
 
-		public ActionResult Index() {
+		public ActionResult Index(DateTime date) {
 			var airports = GetAirports();
 			var flightDatas = new List<dynamic>();
 
 			foreach (var airport in airports) {
-				flightDatas.Add(new {
+				flightDatas.Add(new FlightData {
 					NumberOfTravelers = GetRandomTravelers(),
 					DestinationLat = airport.Latitude,
 					DestinationLong = airport.Longitude,
-					//Date = new DateTime(2013, 01, 01)
+					Date = date,
+
 				});
 			}
 
 			return Json(flightDatas, JsonRequestBehavior.AllowGet);
-			//return Json(new {NumberOfTravelers = 35, DestinationLat = -32, DestinationLong = 58}, JsonRequestBehavior.AllowGet);
 		}
 	}
 
