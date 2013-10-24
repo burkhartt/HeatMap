@@ -35,6 +35,9 @@ public class Demand {
 
 	HashBasedTable<String, DateTime, Integer> demandByDateCity = HashBasedTable.create();
 
+	/**
+	 * Constructor
+	 */
 	public Demand(String filename) {
 		File f = new File(filename);
 
